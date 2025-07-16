@@ -1,5 +1,5 @@
 import streamlit as st
-import tensorflow as tf  # Fixed: Changed from tf_keras to tensorflow
+import tensorflow as tf
 from PIL import Image
 import numpy as np
 import time
@@ -21,14 +21,14 @@ def download_from_hf(url, filename):
                 f.write(response.content)
 
 @st.cache_resource
-def load_model(path, model_name):
+def load_model(path):
     try:
-        if path.endswith('.weights.h5'):
-            st.warning(f"Cannot load {model_name} - weights file requires model architecture")
-            return None
-        else:
+        if path.endswith('.keras'):
             model = tf.keras.models.load_model(path)
             return model
+        else:
+            st.warning(f"Cannot load {path} - only .keras files supported")
+            return None
     except Exception as e:
         st.error(f"Error loading model from {path}: {e}")
         return None
@@ -63,26 +63,9 @@ MODEL_INFOS = {
         "url": "https://huggingface.co/Bhavi23/MobilenetV2/resolve/main/multi_input_model_v1.keras",
         "filename": "mobilenetv2.keras",
         "description": "MobileNetV2 fine-tuned model"
-    },
-    # Temporarily disabled weight-only models until architectures are available
-    # "Custom CNN": {
-    #     "url": "https://huggingface.co/Bhavi23/Custom_CNN/resolve/main/model_checkpoint.weights.h5",
-    #     "filename": "custom_cnn.h5",
-    #     "description": "Custom CNN trained from scratch"
-    # },
-    # "EfficientNet-B0": {
-    #     "url": "https://huggingface.co/Bhavi23/EfficientNet_B0/resolve/main/efficientnet_checkpoint.weights.h5",
-    #     "filename": "efficientnet.h5",
-    #     "description": "EfficientNet-B0 fine-tuned model"
-    # },
-    # "DenseNet": {
-    #     "url": "https://huggingface.co/Bhavi23/DenseNet/resolve/main/densenet_checkpoint.weights.h5",
-    #     "filename": "densenet.h5",
-    #     "description": "DenseNet fine-tuned model"
-    # }
+    }
 }
 
-# Your updated class names:
 CLASS_NAMES = ['0', '1', '10', '2', '3', '4', '5', '6', '7', '8', '9']
 
 def main():
@@ -109,7 +92,7 @@ def main():
         results = {}
 
         for model_name, info in MODEL_INFOS.items():
-            model = load_model(info["filename"], model_name)
+            model = load_model(info["filename"])
             if model is not None:
                 with st.spinner(f"Predicting with {model_name}..."):
                     res = predict_model(model, image, CLASS_NAMES)

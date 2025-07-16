@@ -1,9 +1,0 @@
-streamlit
-tensorflow==2.12.0
-pillow
-numpy
-psutil
-pandas
-matplotlib
-seaborn
-requests

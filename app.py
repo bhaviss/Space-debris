@@ -1,5 +1,5 @@
 import streamlit as st
-import tf_keras as tf  # Changed from tensorflow to tf_keras
+import tensorflow as tf  # Fixed: Changed from tf_keras to tensorflow
 from PIL import Image
 import numpy as np
 import time
@@ -21,10 +21,14 @@ def download_from_hf(url, filename):
                 f.write(response.content)
 
 @st.cache_resource
-def load_model(path):
+def load_model(path, model_name):
     try:
-        model = tf.keras.models.load_model(path)
-        return model
+        if path.endswith('.weights.h5'):
+            st.warning(f"Cannot load {model_name} - weights file requires model architecture")
+            return None
+        else:
+            model = tf.keras.models.load_model(path)
+            return model
     except Exception as e:
         st.error(f"Error loading model from {path}: {e}")
         return None
@@ -55,26 +59,27 @@ def predict_model(model, image, class_names):
     }
 
 MODEL_INFOS = {
-    "Custom CNN": {
-        "url": "https://huggingface.co/Bhavi23/Custom_CNN/resolve/main/model_checkpoint.weights.h5",
-        "filename": "custom_cnn.h5",
-        "description": "Custom CNN trained from scratch"
-    },
     "MobileNetV2": {
         "url": "https://huggingface.co/Bhavi23/MobilenetV2/resolve/main/multi_input_model_v1.keras",
-        "filename": "mobilenetv2.h5",
+        "filename": "mobilenetv2.keras",
         "description": "MobileNetV2 fine-tuned model"
     },
-    "EfficientNet-B0": {
-        "url": "https://huggingface.co/Bhavi23/EfficientNet_B0/resolve/main/efficientnet_checkpoint.weights.h5",
-        "filename": "efficientnet.h5",
-        "description": "EfficientNet-B0 fine-tuned model"
-    },
-    "DenseNet": {
-        "url": "https://huggingface.co/Bhavi23/DenseNet/resolve/main/densenet_checkpoint.weights.h5",
-        "filename": "densenet.h5",
-        "description": "DenseNet fine-tuned model"
-    }
+    # Temporarily disabled weight-only models until architectures are available
+    # "Custom CNN": {
+    #     "url": "https://huggingface.co/Bhavi23/Custom_CNN/resolve/main/model_checkpoint.weights.h5",
+    #     "filename": "custom_cnn.h5",
+    #     "description": "Custom CNN trained from scratch"
+    # },
+    # "EfficientNet-B0": {
+    #     "url": "https://huggingface.co/Bhavi23/EfficientNet_B0/resolve/main/efficientnet_checkpoint.weights.h5",
+    #     "filename": "efficientnet.h5",
+    #     "description": "EfficientNet-B0 fine-tuned model"
+    # },
+    # "DenseNet": {
+    #     "url": "https://huggingface.co/Bhavi23/DenseNet/resolve/main/densenet_checkpoint.weights.h5",
+    #     "filename": "densenet.h5",
+    #     "description": "DenseNet fine-tuned model"
+    # }
 }
 
 # Your updated class names:
@@ -104,7 +109,7 @@ def main():
         results = {}
 
         for model_name, info in MODEL_INFOS.items():
-            model = load_model(info["filename"])
+            model = load_model(info["filename"], model_name)
             if model is not None:
                 with st.spinner(f"Predicting with {model_name}..."):
                     res = predict_model(model, image, CLASS_NAMES)

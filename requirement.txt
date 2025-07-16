@@ -1,0 +1,9 @@
+streamlit
+tensorflow
+pillow
+numpy
+psutil
+pandas
+matplotlib
+seaborn
+requests
